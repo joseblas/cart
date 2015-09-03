@@ -20,7 +20,7 @@ public class ShoppingCartImpl implements ShoppingCart {
 
 
     // Cart item list
-    Map<Item,AtomicInteger> items = Collections.synchronizedMap(new HashMap<Item, AtomicInteger>());
+    Map<Item, AtomicInteger> items = Collections.synchronizedMap(new HashMap<Item, AtomicInteger>());
     //total
     AtomicLong total = new AtomicLong(0);
 
@@ -28,29 +28,35 @@ public class ShoppingCartImpl implements ShoppingCart {
      Adds an item to the cart
      */
     public void add(Item item) {
-        lock.writeLock().lock();
-        if(!items.containsKey(item)){
-            items.put(item, new AtomicInteger(1));
-        }else{
-            items.get(item).incrementAndGet();
+        try {
+            lock.writeLock().lock();
+            if (!items.containsKey(item)) {
+                items.put(item, new AtomicInteger(1));
+            } else {
+                items.get(item).incrementAndGet();
+            }
+            total.accumulateAndGet(item.getPrice(), (n, m) -> n + m);
+        } finally {
+            lock.writeLock().unlock();
         }
-        total.accumulateAndGet(item.getPrice(), (n, m) -> n + m);
-        lock.writeLock().unlock();
     }
 
     public void remove(Item item) {
-        lock.writeLock().lock();
-        if(items.containsKey(item) && items.get(item).get()>0){
-            items.get(item).decrementAndGet();
-            total.accumulateAndGet(item.getPrice(), (n, m) -> n - m);
+        try {
+            lock.writeLock().lock();
+            if (items.containsKey(item) && items.get(item).get() > 0) {
+                items.get(item).decrementAndGet();
+                total.accumulateAndGet(item.getPrice(), (n, m) -> n - m);
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
-        lock.writeLock().unlock();
     }
 
-    public long getTotalItems(){
+    public long getTotalItems() {
         AtomicLong total = new AtomicLong();
-        for(AtomicInteger integer: items.values()){
-            total.accumulateAndGet(integer.get(), (a,b) -> a+b);
+        for (AtomicInteger integer : items.values()) {
+            total.accumulateAndGet(integer.get(), (a, b) -> a + b);
         }
         return total.get();
     }
