@@ -40,7 +40,7 @@ public class ShoppingCartImpl implements ShoppingCart {
 
     public void remove(Item item) {
         lock.writeLock().lock();
-        if(items.containsKey(item)){
+        if(items.containsKey(item) && items.get(item).get()>0){
             items.get(item).decrementAndGet();
             total.accumulateAndGet(item.getPrice(), (n, m) -> n - m);
         }

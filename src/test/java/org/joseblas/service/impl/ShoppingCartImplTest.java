@@ -29,6 +29,14 @@ public class ShoppingCartImplTest extends TestCase {
     }
 
     @Test
+    public void testAddNoItems() throws Exception {
+
+        Assert.assertThat(cart.checkout(), is(0L));
+        Assert.assertThat(cart.getTotalItems(),is(0L));
+    }
+
+
+    @Test
     public void testRemove() throws Exception {
         cart.add(Items.Apple);
         cart.remove(Items.Apple);
@@ -37,5 +45,17 @@ public class ShoppingCartImplTest extends TestCase {
         Assert.assertThat(cart.getTotalItems(),is(1L));
     }
 
+
+    @Test
+    public void testRemoveMoreElementsThanExisting() throws Exception {
+        cart.add(Items.Apple);
+        cart.remove(Items.Apple);
+        cart.add(Items.Apple);
+        cart.remove(Items.Apple);
+        cart.remove(Items.Apple);
+        cart.remove(Items.Apple);
+        Assert.assertThat(cart.checkout(), is(0L));
+        Assert.assertThat(cart.getTotalItems(),is(0L));
+    }
 
 }
